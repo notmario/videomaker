@@ -260,7 +260,7 @@ const defaultRenderer = (canvas, scenes, vidLength = null) => {
       else 
         console.log(`rendering frame ${`0000${i}`.slice(-5)} - ${textProgressBar(i,vidLength,20)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
       // save frame
-      fs.writeFileSync(__dirname + `/out/frame${i}.png`, canvas.toBuffer('image/png'), { flag: 'w' });
+      fs.writeFileSync(__dirname + `/out/frame${i}.jpeg`, canvas.toBuffer('image/jpeg', 0.7), { flag: 'w' });
 
       i++;
     }
@@ -294,29 +294,29 @@ console.log(audioPath);
     ffmpeg.FS('writeFile', 'audio.ogg', await fetchFile(__dirname + "/" + audioPath));
   for (let i = 0; i < length; i += 1) {
     const num = `0000${i}`.slice(-5);
-    ffmpeg.FS('writeFile', `tmp.${num}.png`, await fetchFile(__dirname + `/out/frame${i}.png`));
+    ffmpeg.FS('writeFile', `tmp.${num}.jpeg`, await fetchFile(__dirname + `/out/frame${i}.jpeg`));
   }
 
   if (audioPath !== null)
     if (props.shorter)
-      await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.png', '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-shortest', 'out.mp4');
+      await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-shortest', 'out.mp4');
     else
-      await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.png', '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
+      await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
   else
-    await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.png', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
+    await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
 
   if (audioPath !== null)
     await ffmpeg.FS('unlink', 'audio.ogg');
 
   for (let i = 0; i < length; i += 1) {
     const num = `0000${i}`.slice(-5);
-    await ffmpeg.FS('unlink', `tmp.${num}.png`);
+    await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
   }
   await fs.promises.writeFile('out.mp4', ffmpeg.FS('readFile', 'out.mp4'));
 
   // delete frames
   for (let i = 0; i < length; i += 1) {
-    await fs.promises.unlink(__dirname + `/out/frame${i}.png`);
+    await fs.promises.unlink(__dirname + `/out/frame${i}.jpeg`);
   }
   process.exit(0);
 })();
