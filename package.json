@@ -1,0 +1,19 @@
+{
+  "name": "videomaker",
+  "version": "1.0.0",
+  "description": "make videos using code",
+  "main": "index.js",
+  "scripts": {
+    "test": "tsc && node --experimental-wasm-threads . test"
+  },
+  "keywords": [
+    "epic"
+  ],
+  "author": "notmario",
+  "license": "ISC",
+  "dependencies": {
+    "@ffmpeg/core": "^0.11.0",
+    "@ffmpeg/ffmpeg": "^0.11.4",
+    "canvas": "^2.10.0"
+  }
+}
