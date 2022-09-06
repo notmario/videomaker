@@ -230,7 +230,7 @@ const defaultRenderer = (canvas, scenes, vidLength = null) => {
       
       // draw objects
       for (let obj of objects.value) {
-        canvas.globalAlpha = obj.opacity;
+        canvas.getContext('2d').globalAlpha = obj.opacity;
         if (obj.type === "text") {
           canvas.getContext('2d').font = `${obj.fontSize} ${obj.fontFamily}`;
           canvas.getContext('2d').fillStyle = "white";
@@ -321,4 +321,4 @@ console.log(audioPath);
   process.exit(0);
 })();
 
-export { CONSTS, defaultRenderer, Text, ObjectImage as Image, tween, pinTo, easeInOut, easeIn, easeOut, noEase, waitFrames, waitUntilTime, getTextWidth }
+export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, tween, pinTo, easeInOut, easeIn, easeOut, noEase, waitFrames, waitUntilTime, getTextWidth }
