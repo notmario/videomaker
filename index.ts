@@ -133,24 +133,30 @@ function* tween (object: {[key: string]: any}, duration: number, properties: {[k
 /**
  * Wait for a number of frames. Calling this with yield* will pause the scene until the wait is complete.
  * @param frames The number of frames to wait
+ * @param nextGen The generator to call after the wait is complete
  */
-function* waitFrames (frames) {
+function* waitFrames (frames, nextGen = null) {
   while (frames > 0) {
     frames--;
     yield;
   }
+  if (nextGen && nextGen.next)
+    yield* nextGen;
 }
 
 /**
  * Wait until a certain time has passed. Calling this with yield* will pause the scene until the wait is complete.
  * @param i The current time
  * @param time The time to wait until
+ * @param nextGen The generator to call after the wait is complete
  */
-function* waitUntilTime (i, time) {
+function* waitUntilTime (i, time, nextGen = null) {
   while (i < time*60) {
     i++;
     yield;
   }
+  if (nextGen && nextGen.next)
+    yield* nextGen;
 }
 
 /**
@@ -292,6 +298,11 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
           canvas.getContext('2d').arcTo(obj.x, obj.y + obj.h, obj.x, obj.y, r);
           canvas.getContext('2d').arcTo(obj.x, obj.y, obj.x + obj.w, obj.y, r);
           canvas.getContext('2d').fill();
+        } else if (obj.type === "video") {
+          canvas.getContext('2d').drawImage(obj.realVideo, obj.x, obj.y, obj.w, obj.h);
+          if (obj.realVideo.playing) {
+            obj.realVideo.currentTime += 1/60;
+          }
         }
       }
       if (vidLength === null)

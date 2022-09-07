@@ -3,4 +3,4 @@
 /projects/*
 !/projects/test
 *.js
-out.mp4
+/out.mp4

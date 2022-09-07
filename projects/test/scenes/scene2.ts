@@ -1,4 +1,3 @@
-// here is where we would import images
 import { Image, tween, waitFrames, easeIn, easeOut, CONSTS } from "../../../index";
 
 // Basic tweening of an image object
@@ -6,7 +5,7 @@ import { Image, tween, waitFrames, easeIn, easeOut, CONSTS } from "../../../inde
 function* scene() {
   let objs = [];
 
-  objs.push(new Image("projects/test/img/thumbsup.png", -480, 360 - 335.5 / 2, 480, 335.5));
+  objs.push(new Image("projects/test/assets/thumbsup.png", -480, 360 - 335.5 / 2, 480, 335.5));
 
   yield objs;
 
