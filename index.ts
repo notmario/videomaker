@@ -1,4 +1,4 @@
-import { createCanvas, Image } from "canvas";
+import { Canvas, createCanvas, Image } from "canvas";
 
 const PROJECT_TO_BUILD = process.argv[2];
 
@@ -18,11 +18,22 @@ const CONSTS = {
   SCREEN_CENTER_Y: 720 / 2,
 };
 
+/** Class representing a text object */
 class Text {
-  constructor(text: string, x: number, y: number) {
+  /**
+   * Create a text object
+   * @param {string} text - The text to display
+   * @param {number} x - The x position of the text
+   * @param {number} y - The y position of the text
+   * @param {string} [fontSize=48px] - The font size of the text
+   * @param {string} [fontFamily=Arial] - The font family of the text
+  */
+  constructor(text: string, x: number, y: number, fontSize = "48px", fontFamily = "Arial") {
     this.text = text;
     this.x = x;
     this.y = y;
+    this.fontFamily = fontFamily;
+    this.fontSize = fontSize;
   }
   text = "";
   x = 0;
@@ -33,7 +44,16 @@ class Text {
   opacity = 1;
 }
 
+/** Class representing an image object */
 class ObjectImage {
+  /**
+   * Create an image object. Will wait until the image is loaded before continuing.
+   * @param {string} image - The path to the image
+   * @param {number} x - The x position of the image
+   * @param {number} y - The y position of the image
+   * @param {number} w - The width of the image
+   * @param {number} h - The height of the image
+  */
   constructor(image: string, x: number, y: number, w: number, h: number) {
     this.image = image;
     this.x = x;
@@ -55,7 +75,17 @@ class ObjectImage {
   opacity = 1;
 }
 
+/** Class representing a solid block of colour */
 class Box {
+  /**
+   * Create a box object
+   * @param {string} color - The color of the box
+   * @param {number} x - The x position of the box
+   * @param {number} y - The y position of the box
+   * @param {number} w - The width of the box
+   * @param {number} h - The height of the box
+   * @param {number} r - The border radius of the box
+  */
   constructor(color: string, x: number, y: number, w: number, h: number, r: number) {
     this.color = color;
     this.x = x;
@@ -80,8 +110,9 @@ class Box {
  * @param duration The duration of the tween in frames
  * @param properties The properties to tween to
  * @param easing The easing function to use (defaults to no easing) 
+ * @param nextGen The generator to call after the tween is complete
  */
-function* tween (object, duration, properties, easing = noEase) {
+function* tween (object: {[key: string]: any}, duration: number, properties: {[key: string]: any}, easing = noEase, nextGen = null) {
   // set object field over duration frames
   let frames = 0;
   let startVals = {};
@@ -95,6 +126,8 @@ function* tween (object, duration, properties, easing = noEase) {
     frames++;
     yield;
   }
+  if (nextGen && nextGen.next)
+    yield* nextGen;
 }
 
 /**
@@ -196,8 +229,14 @@ const textProgressBar = (v, m, w) => {
   return text;
 };
 
-
-const defaultRenderer = (canvas, scenes, vidLength = null) => {
+/**
+ * Render a video using a sequence of generator functions
+ * @param canvas The canvas to render to
+ * @param scenes An array of generator functions
+ * @param vidLength The length of the video in frames (optional, used only for progress bar)
+ * @returns The video length in frames
+ */
+const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLength = null) => {
   let i = 0;
   for (let scene of scenes) {
     let objects = scene.next();

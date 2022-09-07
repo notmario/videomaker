@@ -1,6 +1,7 @@
 // here is where we would import images
 import { Text, Image, tween, waitUntilTime, easeInOut, easeOut, CONSTS, getTextWidth } from "../../../index";
 
+// Complex simultaneous tweening of multiple objects, with tween chaining
 
 function* scene() {
   let objs = [];
@@ -10,8 +11,10 @@ function* scene() {
   yield objs;
 
   yield* waitUntilTime(yield, 16);
-  yield tween(objs[0], 180, {x: CONSTS.SCREEN_CENTER_X - 480/2}, easeOut);
-  yield tween(objs[1], 120, {y: CONSTS.SCREEN_HEIGHT / 4}, easeInOut);
+  yield tween(objs[0], 180, {x: CONSTS.SCREEN_CENTER_X - 480/2}, easeOut,
+        tween(objs[0], 180, {opacity: 0.5}, easeInOut));
+  yield tween(objs[1], 60, {y: CONSTS.SCREEN_HEIGHT / 4}, easeInOut,
+        tween(objs[1], 60, {y: 3 * CONSTS.SCREEN_HEIGHT / 4}, easeInOut));
   yield* waitUntilTime(yield, 24);
 }
 

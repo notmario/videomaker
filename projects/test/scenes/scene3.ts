@@ -1,6 +1,7 @@
 // here is where we would import images
 import { Text, waitUntilTime, CONSTS } from "../../../index";
 
+// Waiting until a certain time in the video (e.g. for sync)
 
 function* scene() {
   let objs = [];

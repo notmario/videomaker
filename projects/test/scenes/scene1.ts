@@ -1,6 +1,7 @@
 // here is where we would import images
 import { Text, tween, waitFrames, CONSTS, easeIn, easeOut } from "../../../index";
 
+// Basic tweening of a text object
 
 function* scene() {
   let objs = [];
