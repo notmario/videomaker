@@ -7,7 +7,7 @@ import scene4 from './scenes/scene4';
 
 export function main(canvas) {
   let scenes = [scene1(), scene2(), scene3(), scene4()];
-  let vidLength = 1740;
+  let vidLength = 1440;
   let i = defaultRenderer(canvas, scenes, vidLength);
   let audioPath = 'projects/test/audio.ogg';
   return { i, audioPath, shorter: true };
