@@ -86,7 +86,7 @@ class Box {
    * @param {number} h - The height of the box
    * @param {number} r - The border radius of the box
   */
-  constructor(color: string, x: number, y: number, w: number, h: number, r: number) {
+  constructor(color: string, x: number, y: number, w: number, h: number, r = 0) {
     this.color = color;
     this.x = x;
     this.y = y;
