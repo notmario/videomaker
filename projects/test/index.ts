@@ -10,5 +10,5 @@ export function main(canvas) {
   let vidLength = 1440;
   let i = defaultRenderer(canvas, scenes, vidLength);
   let audioPath = 'projects/test/audio.ogg';
-  return { i, audioPath, shorter: true, type: "gifloop" };
+  return { i, audioPath, shorter: true };
 }
