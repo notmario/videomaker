@@ -10,7 +10,7 @@ function* scene() {
   yield objs;
 
   yield* waitUntilTime(yield, 16);
-  yield tween(objs[0], 180, {x: CONSTS.SCREEN_CENTER_X - 480/2}, easeOut,
+  yield tween(objs[0], 180, {x: CONSTS.SCREEN_CENTER_X - 480/2, rotation: Math.PI*2}, easeOut,
         waitFrames(60,
         tween(objs[0], 120, {opacity: 0.1}, easeInOut)));
   yield tween(objs[1], 60, {y: CONSTS.SCREEN_HEIGHT / 4}, easeInOut,

@@ -38,6 +38,7 @@ class Text {
   text = "";
   x = 0;
   y = 0;
+  rotation = 0;
   type = "text";
   fontSize = "48px";
   fontFamily = "Arial";
@@ -70,6 +71,7 @@ class ObjectImage {
   y = 0;
   w = 0;
   h = 0;
+  rotation = 0;
   type = "image";
   realImage = null;
   opacity = 1;
@@ -280,9 +282,21 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
           canvas.getContext('2d').font = `${obj.fontSize} ${obj.fontFamily}`;
           canvas.getContext('2d').fillStyle = "white";
           canvas.getContext('2d').textAlign = "center";
+          // rotation
+          canvas.getContext('2d').save();
+          canvas.getContext('2d').translate(obj.x, obj.y);
+          canvas.getContext('2d').rotate(obj.rotation);
+          canvas.getContext('2d').translate(-obj.x, -obj.y);
           canvas.getContext('2d').fillText(obj.text, obj.x, obj.y);
+          canvas.getContext('2d').restore();
         } else if (obj.type === "image") {
+          // rotation
+          canvas.getContext('2d').save();
+          canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+          canvas.getContext('2d').rotate(obj.rotation);
+          canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
           canvas.getContext('2d').drawImage(obj.realImage, obj.x, obj.y, obj.w, obj.h);
+          canvas.getContext('2d').restore();
         } else if (obj.type === "box") {
           canvas.getContext('2d').fillStyle = obj.color;
           let r = obj.r;
@@ -308,7 +322,7 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
       if (vidLength === null)
         console.log(`rendering frame ${`0000${i}`.slice(-5)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
       else 
-        console.log(`rendering frame ${`0000${i}`.slice(-5)} - ${textProgressBar(i,vidLength,20)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+        console.log(`rendering frame ${`0000${i}`.slice(-5)} - ${textProgressBar(i,vidLength,50)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
       // save frame
       fs.writeFileSync(__dirname + `/out/frame${i}.jpeg`, canvas.toBuffer('image/jpeg', 0.7), { flag: 'w' });
 
