@@ -350,6 +350,7 @@ let props = project.main(canvas);
 let length = props.i;
 let audioPath = props.audioPath || null;
 let type = props.type || "mp4"; // mp4 or gif
+console.log(type);
 
 console.log(audioPath);
 
@@ -359,7 +360,8 @@ console.log(audioPath);
     ffmpeg.FS('writeFile', 'audio.ogg', await fetchFile(__dirname + "/" + audioPath));
   for (let i = 0; i < length; i += 1) {
     const num = `0000${i}`.slice(-5);
-    ffmpeg.FS('writeFile', `tmp.${num}.jpeg`, await fetchFile(__dirname + `/out/frame${i}.jpeg`));
+    if (type === "mp4" || i % 2 === 0)
+      ffmpeg.FS('writeFile', `tmp.${num}.jpeg`, await fetchFile(__dirname + `/out/frame${i}.jpeg`));
   }
 
   if (type === "mp4")
@@ -371,16 +373,17 @@ console.log(audioPath);
     else
       await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
   else if (type === "gif")
-    await ffmpeg.run('-framerate', '30', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '-1', 'out.gif');
+    await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '-1', 'out.gif');
   else if (type === "gifloop")
-    await ffmpeg.run('-framerate', '30', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '0', 'out.gif');
+    await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '0', 'out.gif');
 
   if (audioPath !== null)
     await ffmpeg.FS('unlink', 'audio.ogg');
 
   for (let i = 0; i < length; i += 1) {
     const num = `0000${i}`.slice(-5);
-    await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
+    if (type === "mp4" || i % 2 === 0)
+      await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
   }
   if (type === "mp4")
     await fs.promises.writeFile('out.mp4', ffmpeg.FS('readFile', 'out.mp4'));
