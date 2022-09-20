@@ -349,6 +349,7 @@ const project = require(`./projects/${PROJECT_TO_BUILD}/index`);
 let props = project.main(canvas);
 let length = props.i;
 let audioPath = props.audioPath || null;
+let type = props.type || "mp4"; // mp4 or gif
 
 console.log(audioPath);
 
@@ -361,13 +362,18 @@ console.log(audioPath);
     ffmpeg.FS('writeFile', `tmp.${num}.jpeg`, await fetchFile(__dirname + `/out/frame${i}.jpeg`));
   }
 
-  if (audioPath !== null)
-    if (props.shorter)
-      await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-shortest', 'out.mp4');
+  if (type === "mp4")
+    if (audioPath !== null)
+      if (props.shorter)
+        await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-shortest', 'out.mp4');
+      else
+        await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
     else
-      await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
-  else
-    await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
+      await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
+  else if (type === "gif")
+    await ffmpeg.run('-framerate', '30', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '-1', 'out.gif');
+  else if (type === "gifloop")
+    await ffmpeg.run('-framerate', '30', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '0', 'out.gif');
 
   if (audioPath !== null)
     await ffmpeg.FS('unlink', 'audio.ogg');
@@ -376,7 +382,10 @@ console.log(audioPath);
     const num = `0000${i}`.slice(-5);
     await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
   }
-  await fs.promises.writeFile('out.mp4', ffmpeg.FS('readFile', 'out.mp4'));
+  if (type === "mp4")
+    await fs.promises.writeFile('out.mp4', ffmpeg.FS('readFile', 'out.mp4'));
+  else
+    await fs.promises.writeFile('out.gif', ffmpeg.FS('readFile', 'out.gif'));
 
   // delete frames
   for (let i = 0; i < length; i += 1) {
