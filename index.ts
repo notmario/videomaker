@@ -324,29 +324,31 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
           canvas.getContext('2d').restore();
         } else if (obj.type === "image") {
           // rotation
-          canvas.getContext('2d').save();
-          canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
-          canvas.getContext('2d').rotate(obj.rotation);
-          canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
-          canvas.getContext('2d').drawImage(obj.realImage, obj.x, obj.y, obj.w, obj.h);
-          canvas.getContext('2d').restore();
+          if (!(obj.opacity < 1/100 || obj.x > CONSTS.SCREEN_WIDTH || obj.y > CONSTS.SCREEN_HEIGHT || obj.x + obj.w < 0 || obj.y + obj.h < 0)) {
+            canvas.getContext('2d').save();
+            canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+            canvas.getContext('2d').rotate(obj.rotation);
+            canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
+            canvas.getContext('2d').drawImage(obj.realImage, obj.x, obj.y, obj.w, obj.h);
+            canvas.getContext('2d').restore();
+          }
         } else if (obj.type === "video") {
           // rotation
-          canvas.getContext('2d').save();
-          canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
-          canvas.getContext('2d').rotate(obj.rotation);
-          canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
-          // load frame
-          if (obj.opacity > 1/100) {
+          if (!(obj.opacity < 1/100 || obj.x > CONSTS.SCREEN_WIDTH || obj.y > CONSTS.SCREEN_HEIGHT || obj.x + obj.w < 0 || obj.y + obj.h < 0)) {
+            canvas.getContext('2d').save();
+            canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+            canvas.getContext('2d').rotate(obj.rotation);
+            canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
+            // load frame
             let frame = new Image();
             let i = Math.floor(obj.currentTime / 60 * obj.framerate) + 1;
             let num = `0000${i}`.slice(-5);
             frame.src = __dirname + "/" + obj.video + "/frame" + num + ".jpeg";
             while (frame.width === 0) {}
             canvas.getContext('2d').drawImage(frame, obj.x, obj.y, obj.w, obj.h);
-          }
 
-          canvas.getContext('2d').restore();
+            canvas.getContext('2d').restore();
+          }
         } else if (obj.type === "box") {
           canvas.getContext('2d').fillStyle = obj.color;
           let r = obj.r;
