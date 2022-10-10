@@ -2,6 +2,8 @@
 /out
 /projects/*
 !/projects/test
+!/projects/videotest
+/projects/videotest/assets/video1/frame*.jpeg
 *.js
 /out.mp4
 /out.gif

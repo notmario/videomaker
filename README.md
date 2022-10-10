@@ -17,3 +17,8 @@ Uhh this documentation is probably gonna suck for a while but oh well.
 4. to render the video in `projects/test` run `node --experimental-wasm-threads . test`
 
 uhh yeah that's about it. i tried to do jsdoc so that's there if you want
+
+## Converting a video to image sequence:
+
+This is how you import videos.  
+To do this you run the command `ffmpeg -i thevideo.mp4 -vf fps=FRAMERATE frame%05d.jpeg` and that will output an image sequence in the correct format. Place that in a folder and you can import the video. 

@@ -28,12 +28,13 @@ class Text {
    * @param {string} [fontSize=48px] - The font size of the text
    * @param {string} [fontFamily=Arial] - The font family of the text
   */
-  constructor(text: string, x: number, y: number, fontSize = "48px", fontFamily = "Arial") {
+  constructor(text: string, x: number, y: number, fontSize = "48px", fontFamily = "Arial", color = "white") {
     this.text = text;
     this.x = x;
     this.y = y;
     this.fontFamily = fontFamily;
     this.fontSize = fontSize;
+    this.color = color;
   }
   text = "";
   x = 0;
@@ -43,6 +44,7 @@ class Text {
   fontSize = "48px";
   fontFamily = "Arial";
   opacity = 1;
+  color = "white";
 }
 
 /** Class representing an image object */
@@ -75,6 +77,34 @@ class ObjectImage {
   type = "image";
   realImage = null;
   opacity = 1;
+}
+/** Class representing an image object */
+class Video {
+  /**
+   * Create an video object. Will draw sequential frames from the video from the chosen folder.
+   * @param {string} video - The path to the video image folder
+   * @param {number} x - The x position of the image
+   * @param {number} y - The y position of the image
+   * @param {number} w - The width of the image
+   * @param {number} h - The height of the image
+  */
+  constructor(video: string, x: number, y: number, w: number, h: number) {
+    this.video = video;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+  video = "";
+  x = 0;
+  y = 0;
+  w = 0;
+  h = 0;
+  rotation = 0;
+  type = "video";
+  opacity = 1;
+  framerate = 60;
+  currentTime = 0;
 }
 
 /** Class representing a solid block of colour */
@@ -170,9 +200,12 @@ function* pinTo (pinned, base) {
   // get x and y difference
   let xDiff = pinned.x - base.x;
   let yDiff = pinned.y - base.y;
+  let rotDiff = pinned.rotation - base.rotation;
+  let startRot = pinned.rotation;
   while (true) {
-    pinned.x = base.x + xDiff;
-    pinned.y = base.y + yDiff;
+    pinned.rotation = base.rotation + rotDiff;
+    pinned.x = base.x + xDiff * Math.cos(base.rotation - startRot) - yDiff * Math.sin(base.rotation - startRot);
+    pinned.y = base.y + yDiff * Math.cos(base.rotation - startRot) + xDiff * Math.sin(base.rotation - startRot);
     yield;
   }
 }
@@ -280,7 +313,7 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
         canvas.getContext('2d').globalAlpha = obj.opacity;
         if (obj.type === "text") {
           canvas.getContext('2d').font = `${obj.fontSize} ${obj.fontFamily}`;
-          canvas.getContext('2d').fillStyle = "white";
+          canvas.getContext('2d').fillStyle = obj.color;
           canvas.getContext('2d').textAlign = "center";
           // rotation
           canvas.getContext('2d').save();
@@ -296,6 +329,23 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
           canvas.getContext('2d').rotate(obj.rotation);
           canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
           canvas.getContext('2d').drawImage(obj.realImage, obj.x, obj.y, obj.w, obj.h);
+          canvas.getContext('2d').restore();
+        } else if (obj.type === "video") {
+          // rotation
+          canvas.getContext('2d').save();
+          canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+          canvas.getContext('2d').rotate(obj.rotation);
+          canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
+          // load frame
+          if (obj.opacity > 1/100) {
+            let frame = new Image();
+            let i = Math.floor(obj.currentTime / 60 * obj.framerate) + 1;
+            let num = `0000${i}`.slice(-5);
+            frame.src = __dirname + "/" + obj.video + "/frame" + num + ".jpeg";
+            while (frame.width === 0) {}
+            canvas.getContext('2d').drawImage(frame, obj.x, obj.y, obj.w, obj.h);
+          }
+
           canvas.getContext('2d').restore();
         } else if (obj.type === "box") {
           canvas.getContext('2d').fillStyle = obj.color;
@@ -397,4 +447,4 @@ console.log(audioPath);
   process.exit(0);
 })();
 
-export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, tween, pinTo, easeInOut, easeIn, easeOut, noEase, waitFrames, waitUntilTime, getTextWidth }
+export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, Video, tween, pinTo, easeInOut, easeIn, easeOut, noEase, waitFrames, waitUntilTime, getTextWidth }
