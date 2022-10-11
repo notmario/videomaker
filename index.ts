@@ -485,8 +485,7 @@ console.log(audioPath);
 
   for (let i = 0; i < length; i += 1) {
     const num = `0000${i}`.slice(-5);
-    if (fs.existsSync(`tmp.${num}.jpeg`))
-      await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
+    await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
   }
   if (type === "mp4")
     await fs.promises.writeFile('out.mp4', ffmpeg.FS('readFile', 'out.mp4'));
