@@ -2,6 +2,9 @@ import { createCanvas, Image } from "canvas";
 
 const PROJECT_TO_BUILD = process.argv[2];
 
+const START_FRAME = process.argv[3] ? parseInt(process.argv[3]) : 0;
+const END_FRAME = process.argv[4] ? parseInt(process.argv[4]) : -1;
+
 const readline = require('readline');
 
 const fs = require('fs');
@@ -339,81 +342,92 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
           j--;
         }
       }
+      let do_frame = true;
+      if (START_FRAME && i < START_FRAME) do_frame = false;
+      if (END_FRAME && i > END_FRAME && END_FRAME !== -1) do_frame = false;
 
       // clear canvas
-      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-      canvas.getContext('2d').fillStyle = "black";
-      canvas.getContext('2d').fillRect(0, 0, canvas.width, canvas.height);
-      
-      // draw objects
-      for (let obj of objects.value) {
-        canvas.getContext('2d').globalAlpha = obj.opacity;
-        if (obj.type === "text") {
-          canvas.getContext('2d').font = `${obj.fontSize} ${obj.fontFamily}`;
-          canvas.getContext('2d').fillStyle = obj.color;
-          canvas.getContext('2d').textAlign = "center";
-          // rotation
-          canvas.getContext('2d').save();
-          canvas.getContext('2d').translate(obj.x, obj.y);
-          canvas.getContext('2d').rotate(obj.rotation);
-          canvas.getContext('2d').translate(-obj.x, -obj.y);
-          canvas.getContext('2d').fillText(obj.text, obj.x, obj.y);
-          canvas.getContext('2d').restore();
-        } else if (obj.type === "image") {
-          // rotation
-          if (!(obj.opacity < 1/100 || obj.x > CONSTS.SCREEN_WIDTH || obj.y > CONSTS.SCREEN_HEIGHT || obj.x + obj.w < 0 || obj.y + obj.h < 0)) {
+      if (do_frame) {
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        canvas.getContext('2d').fillStyle = "black";
+        canvas.getContext('2d').fillRect(0, 0, canvas.width, canvas.height);
+        
+        // draw objects
+        for (let obj of objects.value) {
+          canvas.getContext('2d').globalAlpha = obj.opacity;
+          if (obj.type === "text") {
+            canvas.getContext('2d').font = `${obj.fontSize} ${obj.fontFamily}`;
+            canvas.getContext('2d').fillStyle = obj.color;
+            canvas.getContext('2d').textAlign = "center";
+            // rotation
             canvas.getContext('2d').save();
-            canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+            canvas.getContext('2d').translate(obj.x, obj.y);
             canvas.getContext('2d').rotate(obj.rotation);
-            canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
-            canvas.getContext('2d').drawImage(obj.realImage, obj.x, obj.y, obj.w, obj.h);
+            canvas.getContext('2d').translate(-obj.x, -obj.y);
+            canvas.getContext('2d').fillText(obj.text, obj.x, obj.y);
             canvas.getContext('2d').restore();
-          }
-        } else if (obj.type === "video") {
-          // rotation
-          if (!(obj.opacity < 1/100 || obj.x > CONSTS.SCREEN_WIDTH || obj.y > CONSTS.SCREEN_HEIGHT || obj.x + obj.w < 0 || obj.y + obj.h < 0)) {
-            canvas.getContext('2d').save();
-            canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
-            canvas.getContext('2d').rotate(obj.rotation);
-            canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
-            // load frame
-            let frame = new Image();
-            let i = Math.floor(obj.currentTime / 60 * obj.framerate) + 1;
-            let num = `0000${i}`.slice(-5);
-            frame.src = __dirname + "/" + obj.video + "/frame" + num + ".jpeg";
-            while (frame.width === 0) {}
-            canvas.getContext('2d').drawImage(frame, obj.x, obj.y, obj.w, obj.h);
-
-            canvas.getContext('2d').restore();
-          }
-        } else if (obj.type === "box") {
-          canvas.getContext('2d').fillStyle = obj.color;
-          let r = obj.r;
-          if (r > obj.w / 2) r = obj.w / 2;
-          if (r > obj.h / 2) r = obj.h / 2;
-          canvas.getContext('2d').fillRect(obj.x + r, obj.y, obj.w - 2 * r, obj.h);
-          canvas.getContext('2d').fillRect(obj.x, obj.y + r, obj.w, obj.h - 2 * r);
-          canvas.getContext('2d').fillRect(obj.x + r, obj.y + r, obj.w - 2 * r, obj.h - 2 * r);
-          canvas.getContext('2d').beginPath();
-          canvas.getContext('2d').moveTo(obj.x + r, obj.y);
-          canvas.getContext('2d').arcTo(obj.x + obj.w, obj.y, obj.x + obj.w, obj.y + obj.h, r);
-          canvas.getContext('2d').arcTo(obj.x + obj.w, obj.y + obj.h, obj.x, obj.y + obj.h, r);
-          canvas.getContext('2d').arcTo(obj.x, obj.y + obj.h, obj.x, obj.y, r);
-          canvas.getContext('2d').arcTo(obj.x, obj.y, obj.x + obj.w, obj.y, r);
-          canvas.getContext('2d').fill();
-        } else if (obj.type === "video") {
-          canvas.getContext('2d').drawImage(obj.realVideo, obj.x, obj.y, obj.w, obj.h);
-          if (obj.realVideo.playing) {
-            obj.realVideo.currentTime += 1/60;
+          } else if (obj.type === "image") {
+            // rotation
+            if (!(obj.opacity < 1/100 || obj.x > CONSTS.SCREEN_WIDTH || obj.y > CONSTS.SCREEN_HEIGHT || obj.x + obj.w < 0 || obj.y + obj.h < 0)) {
+              canvas.getContext('2d').save();
+              canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+              canvas.getContext('2d').rotate(obj.rotation);
+              canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
+              canvas.getContext('2d').drawImage(obj.realImage, obj.x, obj.y, obj.w, obj.h);
+              canvas.getContext('2d').restore();
+            }
+          } else if (obj.type === "video") {
+            // rotation
+            if (!(obj.opacity < 1/100 || obj.x > CONSTS.SCREEN_WIDTH || obj.y > CONSTS.SCREEN_HEIGHT || obj.x + obj.w < 0 || obj.y + obj.h < 0)) {
+              canvas.getContext('2d').save();
+              canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+              canvas.getContext('2d').rotate(obj.rotation);
+              canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
+              // load frame
+              let frame = new Image();
+              let i = Math.floor(obj.currentTime / 60 * obj.framerate) + 1;
+              let num = `0000${i}`.slice(-5);
+              frame.src = __dirname + "/" + obj.video + "/frame" + num + ".jpeg";
+              while (frame.width === 0) {}
+              canvas.getContext('2d').drawImage(frame, obj.x, obj.y, obj.w, obj.h);
+  
+              canvas.getContext('2d').restore();
+            }
+          } else if (obj.type === "box") {
+            canvas.getContext('2d').fillStyle = obj.color;
+            let r = obj.r;
+            if (r > obj.w / 2) r = obj.w / 2;
+            if (r > obj.h / 2) r = obj.h / 2;
+            canvas.getContext('2d').fillRect(obj.x + r, obj.y, obj.w - 2 * r, obj.h);
+            canvas.getContext('2d').fillRect(obj.x, obj.y + r, obj.w, obj.h - 2 * r);
+            canvas.getContext('2d').fillRect(obj.x + r, obj.y + r, obj.w - 2 * r, obj.h - 2 * r);
+            canvas.getContext('2d').beginPath();
+            canvas.getContext('2d').moveTo(obj.x + r, obj.y);
+            canvas.getContext('2d').arcTo(obj.x + obj.w, obj.y, obj.x + obj.w, obj.y + obj.h, r);
+            canvas.getContext('2d').arcTo(obj.x + obj.w, obj.y + obj.h, obj.x, obj.y + obj.h, r);
+            canvas.getContext('2d').arcTo(obj.x, obj.y + obj.h, obj.x, obj.y, r);
+            canvas.getContext('2d').arcTo(obj.x, obj.y, obj.x + obj.w, obj.y, r);
+            canvas.getContext('2d').fill();
+          } else if (obj.type === "video") {
+            canvas.getContext('2d').drawImage(obj.realVideo, obj.x, obj.y, obj.w, obj.h);
+            if (obj.realVideo.playing) {
+              obj.realVideo.currentTime += 1/60;
+            }
           }
         }
+        if (vidLength === null)
+          console.log(`rendering frame ${`0000${i}`.slice(-5)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+        else 
+          console.log(`rendering frame ${`0000${i}`.slice(-5)} - ${textProgressBar(i,vidLength,50)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+        // save frame
+        fs.writeFileSync(__dirname + `/out/frame${i}.jpeg`, canvas.toBuffer('image/jpeg', 0.7), { flag: 'w' });
+      } else {
+        if (vidLength === null)
+          console.log(`skipping frame  ${`0000${i}`.slice(-5)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+        else 
+          console.log(`skipping frame  ${`0000${i}`.slice(-5)} - ${textProgressBar(i,vidLength,50)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+        
       }
-      if (vidLength === null)
-        console.log(`rendering frame ${`0000${i}`.slice(-5)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
-      else 
-        console.log(`rendering frame ${`0000${i}`.slice(-5)} - ${textProgressBar(i,vidLength,50)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
-      // save frame
-      fs.writeFileSync(__dirname + `/out/frame${i}.jpeg`, canvas.toBuffer('image/jpeg', 0.7), { flag: 'w' });
 
       i++;
     }
@@ -449,7 +463,7 @@ console.log(audioPath);
     ffmpeg.FS('writeFile', 'audio.ogg', await fetchFile(__dirname + "/" + audioPath));
   for (let i = 0; i < length; i += 1) {
     const num = `0000${i}`.slice(-5);
-    if (type === "mp4" || i % 2 === 0)
+    if ((type === "mp4" || i % 2 === 0) && fs.existsSync(__dirname + `/out/frame${i}.jpeg`))
       ffmpeg.FS('writeFile', `tmp.${num}.jpeg`, await fetchFile(__dirname + `/out/frame${i}.jpeg`));
   }
 
@@ -471,7 +485,7 @@ console.log(audioPath);
 
   for (let i = 0; i < length; i += 1) {
     const num = `0000${i}`.slice(-5);
-    if (type === "mp4" || i % 2 === 0)
+    if (fs.existsSync(`tmp.${num}.jpeg`))
       await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
   }
   if (type === "mp4")
@@ -481,7 +495,8 @@ console.log(audioPath);
 
   // delete frames
   for (let i = 0; i < length; i += 1) {
-    await fs.promises.unlink(__dirname + `/out/frame${i}.jpeg`);
+    if (fs.existsSync(__dirname + `/out/frame${i}.jpeg`))
+      await fs.promises.unlink(__dirname + `/out/frame${i}.jpeg`);
   }
   process.exit(0);
 })();

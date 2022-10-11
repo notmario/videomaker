@@ -15,6 +15,7 @@ Uhh this documentation is probably gonna suck for a while but oh well.
 2. run `npm i -g typescript` to install the typescript compiler
 3. before each video build run `tsc`
 4. to render the video in `projects/test` run `node --experimental-wasm-threads . test`
+5. to render a partial segment, run `node --experimental-wasm-threads . PROJECT START_FRAME END_FRAME`
 
 uhh yeah that's about it. i tried to do jsdoc so that's there if you want
 
