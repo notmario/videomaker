@@ -1,4 +1,4 @@
-import { Canvas, createCanvas, Image } from "canvas";
+import { createCanvas, Image } from "canvas";
 
 const PROJECT_TO_BUILD = process.argv[2];
 
@@ -16,6 +16,16 @@ const CONSTS = {
   SCREEN_HEIGHT: 720,
   SCREEN_CENTER_X: 1280 / 2,
   SCREEN_CENTER_Y: 720 / 2,
+  SCREEN_HALF_X: 1280 / 2,
+  SCREEN_HALF_Y: 720 / 2,
+  SCREEN_THIRD_X: 1280 / 3,
+  SCREEN_THIRD_Y: 720 / 3,
+  SCREEN_TWO_THIRDS_X: 1280 / 3 * 2,
+  SCREEN_TWO_THIRDS_Y: 720 / 3 * 2,
+  SCREEN_QUARTER_X: 1280 / 4,
+  SCREEN_QUARTER_Y: 720 / 4,
+  SCREEN_THREE_QUARTERS_X: 1280 / 4 * 3,
+  SCREEN_THREE_QUARTERS_Y: 720 / 4 * 3,
 };
 
 /** Class representing a text object */
@@ -238,6 +248,33 @@ const easeOut = (t) => {
 };
 
 /**
+ * Easing function (in)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInSquare = (t) => {
+  return t * t * t;
+};
+
+/**
+ * Easing function (out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeOutSquare = (t) => {
+  return 1 - (--t) * t * t;
+};
+
+/**
+ * Easing function (in out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInOutSquare = (t) => {
+  return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+};
+
+/**
  * What do you think this does?
  * @param t Easing progress
  * @returns Eased value
@@ -449,4 +486,4 @@ console.log(audioPath);
   process.exit(0);
 })();
 
-export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, Video, tween, pinTo, easeInOut, easeIn, easeOut, noEase, waitFrames, waitUntilTime, getTextWidth }
+export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, Video, tween, pinTo, easeInOut, easeIn, easeOut, easeInSquare, easeOutSquare, easeInOutSquare, noEase, waitFrames, waitUntilTime, getTextWidth }
