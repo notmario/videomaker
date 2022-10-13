@@ -5,7 +5,13 @@ const PROJECT_TO_BUILD = process.argv[2];
 const START_FRAME = process.argv[3] ? parseInt(process.argv[3]) : 0;
 const END_FRAME = process.argv[4] ? parseInt(process.argv[4]) : -1;
 
-const readline = require('readline');
+const READLINE = require('readline');
+
+function clear() {
+    READLINE.cursorTo(process.stdout, 0, 0);
+    READLINE.clearLine(process.stdout, 0);
+    READLINE.clearScreenDown(process.stdout);
+}
 
 const fs = require('fs');
 const { createFFmpeg, fetchFile } = require('@ffmpeg/ffmpeg');
@@ -208,19 +214,24 @@ function* waitUntilTime (i, time, nextGen = null) {
  * Pin an object to another object, making it static relative to the base. calling this using yield* will cause an infinite loop!
  * @param pinned The object that moves along with base
  * @param base The object which described the movement of pinned
+ * @param frames The amount of frames to pin for, or -1 for infinite
+ * @param nextGen The generator to call after the pin is complete
  */
-function* pinTo (pinned, base) {
+function* pinTo (pinned, base, frames = -1, nextGen = null) {
   // get x and y difference
   let xDiff = pinned.x - base.x;
   let yDiff = pinned.y - base.y;
   let rotDiff = pinned.rotation - base.rotation;
   let startRot = pinned.rotation;
-  while (true) {
+  while (frames != 0) {
+    frames--;
     pinned.rotation = base.rotation + rotDiff;
     pinned.x = base.x + xDiff * Math.cos(base.rotation - startRot) - yDiff * Math.sin(base.rotation - startRot);
     pinned.y = base.y + yDiff * Math.cos(base.rotation - startRot) + xDiff * Math.sin(base.rotation - startRot);
     yield;
   }
+  if (nextGen && nextGen.next)
+    yield* nextGen;
 }
 
 /**
@@ -302,9 +313,13 @@ const textProgressBar = (v, m, w) => {
   let text = "";
   for (let i = 0; i < w; i++) {
     if (i < w*v/m) {
-      text += "█";
+      if (i < w*v/m - 1) {
+        text += "█";
+      } else {
+        text += ["█", "▉", "▊", "▋", "▌", "▍", "▎", "▏", " "][8-Math.floor((w*v/m - i) * 8)];
+      }
     } else {
-      text += "░";
+      text += " ";
     }
   }
   return text;
@@ -416,16 +431,16 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
           }
         }
         if (vidLength === null)
-          console.log(`rendering frame ${`0000${i}`.slice(-5)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+          console.log(`✎   ${`0000${i}`.slice(-5)} - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${objects.value.length}`.slice(-2)}`);
         else 
-          console.log(`rendering frame ${`0000${i}`.slice(-5)} - ${textProgressBar(i,vidLength,50)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+          console.log(`✎   ${`0000${i}`.slice(-5)} - [${textProgressBar(i,vidLength,50)}] - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${objects.value.length}`.slice(-2)}`);
         // save frame
         fs.writeFileSync(__dirname + `/out/frame${i}.jpeg`, canvas.toBuffer('image/jpeg', 0.7), { flag: 'w' });
       } else {
         if (vidLength === null)
-          console.log(`skipping frame  ${`0000${i}`.slice(-5)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+          console.log(`⨯   ${`0000${i}`.slice(-5)} - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${objects.value.length}`.slice(-2)}`);
         else 
-          console.log(`skipping frame  ${`0000${i}`.slice(-5)} - ${textProgressBar(i,vidLength,50)} - objects: ${objects.value.length} - tweens running: ${runningTweens.length}`);
+          console.log(`⨯   ${`0000${i}`.slice(-5)} - [${textProgressBar(i,vidLength,50)}] - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${objects.value.length}`.slice(-2)}`);
         
       }
 
@@ -483,7 +498,7 @@ console.log(audioPath);
   if (audioPath !== null)
     await ffmpeg.FS('unlink', 'audio.ogg');
 
-  for (let i = 0; i < length; i += 1) {
+  for (let i = START_FRAME; i < (END_FRAME === -1 ? length : END_FRAME); i += 1) {
     const num = `0000${i}`.slice(-5);
     await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
   }
@@ -497,6 +512,7 @@ console.log(audioPath);
     if (fs.existsSync(__dirname + `/out/frame${i}.jpeg`))
       await fs.promises.unlink(__dirname + `/out/frame${i}.jpeg`);
   }
+  console.log("Done!");
   process.exit(0);
 })();
 
