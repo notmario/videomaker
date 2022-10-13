@@ -276,7 +276,7 @@ const easeInSquare = (t) => {
  * @returns Eased value
  */
 const easeOutSquare = (t) => {
-  return 1 - (--t) * t * t;
+  return 1 + (--t) * t * t;
 };
 
 /**
@@ -289,6 +289,125 @@ const easeInOutSquare = (t) => {
 };
 
 /**
+ * Easing function (in)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInCircle = (t) => {
+  return 1 - Math.sqrt(1 - t * t);
+};
+
+/**
+ * Easing function (out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeOutCircle = (t) => {
+  return Math.sqrt(1 - (--t) * t);
+};
+
+/**
+ * Easing function (in out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInOutCircle = (t) => {
+  return t < 0.5 ? (1 - Math.sqrt(1 - 4 * t * t)) / 2 : (Math.sqrt(1 - 4 * (t - 1) * (t - 1)) + 1) / 2;
+};
+
+/**
+ * Easing function (in)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInBounce = (t) => {
+  return 1 - easeOutBounce(1 - t);
+};
+
+/**
+ * Easing function (out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeOutBounce = (t) => {
+  if (t < (1 / 2.75)) {
+    return 7.5625 * t * t;
+  } else if (t < (2 / 2.75)) {
+    return 7.5625 * (t -= (1.5 / 2.75)) * t + 0.75;
+  } else if (t < (2.5 / 2.75)) {
+    return 7.5625 * (t -= (2.25 / 2.75)) * t + 0.9375;
+  } else {
+    return 7.5625 * (t -= (2.625 / 2.75)) * t + 0.984375;
+  }
+};
+
+/**
+ * Easing function (in out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInOutBounce = (t) => {
+  return t < 0.5 ? (1 - easeOutBounce(1 - 2 * t)) / 2 : (1 + easeOutBounce(2 * t - 1)) / 2;
+};
+
+/**
+ * Easing function (in)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInBack = (t) => {
+  return 2.70158 * t * t * t - 1.70158 * t * t;
+};
+
+/**
+ * Easing function (out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeOutBack = (t) => {
+  return 1 - easeInBack(1 - t);
+};
+
+/**
+ * Easing function (in out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInOutBack = (t) => {
+  return t < 0.5 ? (1 - easeInBack(1 - 2 * t)) / 2 : (1 + easeInBack(2 * t - 1)) / 2;
+};
+
+/**
+ * Easing function (in)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeInElastic = (t) => {
+  const c4 = (2 * Math.PI) / 3;
+  
+  return t === 0
+    ? 0
+    : t === 1
+    ? 1
+    : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * c4);
+};
+
+/**
+ * Easing function (out)
+ * @param t Easing progress
+ * @returns Eased value
+ */
+const easeOutElastic = (t) => {
+  return 1 - easeInElastic(1 - t);
+};
+
+const easeInOutElastic = (t) => {
+  return t < 0.5
+    ? (1 - easeInElastic(1 - 2 * t)) / 2
+    : (1 + easeInElastic(2 * t - 1)) / 2;
+};
+
+/**
  * What do you think this does?
  * @param t Easing progress
  * @returns Eased value
@@ -296,6 +415,28 @@ const easeInOutSquare = (t) => {
 const noEase = (t) => {
   return t;
 };
+
+const EASINGS = {
+  easeIn,
+  easeOut,
+  easeInOut,
+  easeInSquare,
+  easeOutSquare,
+  easeInOutSquare,
+  easeInCircle,
+  easeOutCircle,
+  easeInOutCircle,
+  easeInBounce,
+  easeOutBounce,
+  easeInOutBounce,
+  easeInBack,
+  easeOutBack,
+  easeInOutBack,
+  easeInElastic,
+  easeOutElastic,
+  easeInOutElastic,
+  noEase
+}
 
 /**
  * Helper function to get the width of a text string
@@ -516,4 +657,4 @@ console.log(audioPath);
   process.exit(0);
 })();
 
-export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, Video, tween, pinTo, easeInOut, easeIn, easeOut, easeInSquare, easeOutSquare, easeInOutSquare, noEase, waitFrames, waitUntilTime, getTextWidth }
+export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, Video, tween, pinTo, easeInOut, easeIn, easeOut, noEase, EASINGS, waitFrames, waitUntilTime, getTextWidth }
