@@ -187,10 +187,8 @@ function* tween (object: {[key: string]: any}, duration: number, properties: {[k
  * @param nextGen The generator to call after the wait is complete
  */
 function* waitFrames (frames, nextGen = null) {
-  while (frames > 0) {
-    frames--;
+  while (--frames > 0)
     yield;
-  }
   if (nextGen && nextGen.next)
     yield* nextGen;
 }
@@ -572,16 +570,16 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
           }
         }
         if (vidLength === null)
-          console.log(`✎   ${`0000${i}`.slice(-5)} - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${objects.value.length}`.slice(-2)}`);
+          console.log(`✎   ${`0000${i}`.slice(-5)} - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${runningTweens.length}`.slice(-2)}`);
         else 
-          console.log(`✎   ${`0000${i}`.slice(-5)} - [${textProgressBar(i,vidLength,50)}] - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${objects.value.length}`.slice(-2)}`);
+          console.log(`✎   ${`0000${i}`.slice(-5)} - [${textProgressBar(i,vidLength,50)}] - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${runningTweens.length}`.slice(-2)}`);
         // save frame
         fs.writeFileSync(__dirname + `/out/frame${i}.jpeg`, canvas.toBuffer('image/jpeg', 0.7), { flag: 'w' });
       } else {
         if (vidLength === null)
-          console.log(`⨯   ${`0000${i}`.slice(-5)} - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${objects.value.length}`.slice(-2)}`);
+          console.log(`⨯   ${`0000${i}`.slice(-5)} - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${runningTweens.length}`.slice(-2)}`);
         else 
-          console.log(`⨯   ${`0000${i}`.slice(-5)} - [${textProgressBar(i,vidLength,50)}] - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${objects.value.length}`.slice(-2)}`);
+          console.log(`⨯   ${`0000${i}`.slice(-5)} - [${textProgressBar(i,vidLength,50)}] - ⧈: ${`00${objects.value.length}`.slice(-3)} - ⤷: ${`0${runningTweens.length}`.slice(-2)}`);
         
       }
 
