@@ -187,7 +187,7 @@ function* tween (object: {[key: string]: any}, duration: number, properties: {[k
  * @param nextGen The generator to call after the wait is complete
  */
 function* waitFrames (frames, nextGen = null) {
-  while (--frames > 0)
+  while (frames-- > 0)
     yield;
   if (nextGen && nextGen.next)
     yield* nextGen;
