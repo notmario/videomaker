@@ -524,19 +524,27 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
             // rotation
             if (!(obj.opacity < 1/100 || obj.x > CONSTS.SCREEN_WIDTH || obj.y > CONSTS.SCREEN_HEIGHT || obj.x + obj.w < 0 || obj.y + obj.h < 0)) {
               canvas.getContext('2d').save();
-              canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+              canvas.getContext('2d').translate(obj.x + Math.abs(obj.w)/2 , obj.y + Math.abs(obj.h)/2);
               canvas.getContext('2d').rotate(obj.rotation);
-              canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
-              canvas.getContext('2d').drawImage(obj.realImage, obj.x, obj.y, obj.w, obj.h);
+              canvas.getContext('2d').translate(-(obj.x + Math.abs(obj.w)/2), -(obj.y + Math.abs(obj.h)/2));
+              canvas.getContext('2d').translate(obj.x, obj.y);
+              if (obj.w < 0) {canvas.getContext('2d').scale(-1, 1);}
+              if (obj.h < 0) {canvas.getContext('2d').scale(1, -1);}
+              canvas.getContext('2d').translate(-obj.x, -obj.y);
+              canvas.getContext('2d').drawImage(obj.realImage, obj.x, obj.y, Math.abs(obj.w), Math.abs(obj.h));
               canvas.getContext('2d').restore();
             }
           } else if (obj.type === "video") {
             // rotation
             if (!(obj.opacity < 1/100 || obj.x > CONSTS.SCREEN_WIDTH || obj.y > CONSTS.SCREEN_HEIGHT || obj.x + obj.w < 0 || obj.y + obj.h < 0)) {
               canvas.getContext('2d').save();
-              canvas.getContext('2d').translate(obj.x + obj.w/2 , obj.y + obj.h/2);
+              canvas.getContext('2d').translate(obj.x + Math.abs(obj.w)/2 , obj.y + Math.abs(obj.h)/2);
               canvas.getContext('2d').rotate(obj.rotation);
-              canvas.getContext('2d').translate(-(obj.x + obj.w/2), -(obj.y + obj.h/2));
+              canvas.getContext('2d').translate(-(obj.x + Math.abs(obj.w)/2), -(obj.y + Math.abs(obj.h)/2));
+              canvas.getContext('2d').translate(obj.x, obj.y);
+              if (obj.w < 0) {canvas.getContext('2d').scale(-1, 1);}
+              if (obj.h < 0) {canvas.getContext('2d').scale(1, -1);}
+              canvas.getContext('2d').translate(-obj.x, -obj.y);
               // load frame
               let frame = new Image();
               let i = Math.floor(obj.currentTime / 60 * obj.framerate) + 1;
