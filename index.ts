@@ -231,8 +231,8 @@ function* pinTo (pinned, base, frames = -1, nextGen = null) {
   while (frames != 0) {
     frames--;
     pinned.rotation = base.rotation + rotDiff;
-    pinned.x = base.x + (xDiff * (base.w / startW)) * Math.cos(base.rotation - startRot) - yDiff * Math.sin(base.rotation - startRot);
-    pinned.y = base.y + (yDiff * (base.h / startH)) * Math.cos(base.rotation - startRot) + xDiff * Math.sin(base.rotation - startRot);
+    pinned.x = base.x + (xDiff * (base.w / startW)) * Math.cos(base.rotation - startRot) - (yDiff * (base.h / startH)) * Math.sin(base.rotation - startRot);
+    pinned.y = base.y + (yDiff * (base.h / startH)) * Math.cos(base.rotation - startRot) + (xDiff * (base.w / startW)) * Math.sin(base.rotation - startRot);
 
     pinned.w = base.w * xScaleDiff;
     pinned.h = base.h * yScaleDiff;
