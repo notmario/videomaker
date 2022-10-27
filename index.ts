@@ -177,6 +177,9 @@ function* tween (object: {[key: string]: any}, duration: number, properties: {[k
     frames++;
     yield;
   }
+  for (let prop in properties) {
+    object[prop] = properties[prop];
+  }
   if (nextGen && nextGen.next)
     yield* nextGen;
 }
@@ -221,11 +224,18 @@ function* pinTo (pinned, base, frames = -1, nextGen = null) {
   let yDiff = pinned.y - base.y;
   let rotDiff = pinned.rotation - base.rotation;
   let startRot = pinned.rotation;
+  let xScaleDiff = pinned.w / base.w;
+  let yScaleDiff = pinned.h / base.h;
+  let startW = base.w;
+  let startH = base.h;
   while (frames != 0) {
     frames--;
     pinned.rotation = base.rotation + rotDiff;
-    pinned.x = base.x + xDiff * Math.cos(base.rotation - startRot) - yDiff * Math.sin(base.rotation - startRot);
-    pinned.y = base.y + yDiff * Math.cos(base.rotation - startRot) + xDiff * Math.sin(base.rotation - startRot);
+    pinned.x = base.x + (xDiff * (base.w / startW)) * Math.cos(base.rotation - startRot) - yDiff * Math.sin(base.rotation - startRot);
+    pinned.y = base.y + (yDiff * (base.h / startH)) * Math.cos(base.rotation - startRot) + xDiff * Math.sin(base.rotation - startRot);
+
+    pinned.w = base.w * xScaleDiff;
+    pinned.h = base.h * yScaleDiff;
     yield;
   }
   if (nextGen && nextGen.next)
@@ -477,6 +487,7 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
     let objects = scene.next();
     let result = { done: false, value: objects.value } as IteratorResult<any>;
     let runningTweens = [];
+    let do_frame;
 
     while (!result.done) {
       result = scene.next(i);
@@ -496,7 +507,7 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
           j--;
         }
       }
-      let do_frame = true;
+      do_frame = true;
       if (START_FRAME && i < START_FRAME) do_frame = false;
       if (END_FRAME && i > END_FRAME && END_FRAME !== -1) do_frame = false;
 
@@ -593,8 +604,25 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
 
       i++;
     }
+    // save last frame as a png
+    if (do_frame) {
+      fs.writeFileSync(__dirname + `/temp/lastframe.jpeg`, canvas.toBuffer('image/jpeg', 0.7), { flag: 'w' });
+      fs.writeFileSync(__dirname + `/temp/scene${scenes.indexOf(scene)+1}.jpeg`, canvas.toBuffer('image/jpeg', 0.7), { flag: 'w' });
+    } else {
+      // copy defaultscene.jpeg
+      fs.copyFileSync(__dirname + `/defaultscene.jpeg`, __dirname + `/temp/lastframe.jpeg`);
+      fs.copyFileSync(__dirname + `/defaultscene.jpeg`, __dirname + `/temp/scene${scenes.indexOf(scene)+1}.jpeg`);
+
+    }
   }
+  
   return i;
+}
+
+// clear temp folder
+const tempFiles = fs.readdirSync(__dirname + "/temp");
+for (const file of tempFiles) {
+  fs.unlinkSync(__dirname + "/temp/" + file);
 }
 
 // ensure "out" folder exists

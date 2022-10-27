@@ -1,6 +1,7 @@
 /node_modules
 /out
 /projects/*
+/temp/*
 !/projects/test
 !/projects/videotest
 /projects/videotest/assets/video1/frame*.jpeg
