@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Videomaker UI</title>
+  <style>
+    img {
+      width: 40rem;
+      aspect-ratio: 16/9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Yo</h1>
+  <h4>this is not going to be styled at all lolol</h4>
+  <img src="./frame:test:120.png" alt="lmao loading">
+  <br>
+  <label for="project">Project: </label><input name="project" id="projectinput" value="test">
+  <label for="frame">Frame: </label><input type="number" name="frame" id="frameinput" value="60">
+  <br>
+  <button id="refresh">Refresh</button>
+  <button id="tscrefresh">Refresh (and tsc) (doesn't work rn but hopefully will fix. just manually tsc lol)</button>
+  <br>
+  <br>
+  <br>
+  <button id="render">DO THE FULL RENDER!!</button>
+  <p>the output goes to the console lmao</p>
+  <script defer>
+    document.getElementById("refresh").addEventListener("click", ()=>{
+      document.querySelector('img').src = `./frame:${document.getElementById("projectinput").value}:${document.getElementById("frameinput").value}.png`;
+    })
+    document.getElementById("tscrefresh").addEventListener("click", ()=>{
+      document.querySelector('img').src = `./tscframe:${document.getElementById("projectinput").value}:${document.getElementById("frameinput").value}.png`;
+    })
+    document.getElementById("render").addEventListener("click", ()=>{
+      new Image().src = `./render:${document.getElementById("projectinput").value}`;
+    })
+  </script>
+</body>
+</html>

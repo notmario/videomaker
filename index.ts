@@ -1,9 +1,9 @@
 import { createCanvas, Image } from "canvas";
 
-const PROJECT_TO_BUILD = process.argv[2];
+let PROJECT_TO_BUILD = process.argv[2];
 
-const START_FRAME = process.argv[3] ? parseInt(process.argv[3]) : 0;
-const END_FRAME = process.argv[4] ? parseInt(process.argv[4]) : -1;
+let START_FRAME = process.argv[3] ? parseInt(process.argv[3]) : 0;
+let END_FRAME = process.argv[4] ? parseInt(process.argv[4]) : -1;
 
 const READLINE = require('readline');
 
@@ -14,6 +14,9 @@ function clear() {
 }
 
 const fs = require('fs');
+const http = require('http');
+const url = require('url');
+const tsc = require('node-typescript-compiler')
 const { createFFmpeg, fetchFile } = require('@ffmpeg/ffmpeg');
 
 const ffmpeg = createFFmpeg({ log: true });
@@ -106,13 +109,15 @@ class Video {
    * @param {number} y - The y position of the image
    * @param {number} w - The width of the image
    * @param {number} h - The height of the image
+   * @param {number} [extension="jpeg"] - The file extension of the images
   */
-  constructor(video: string, x: number, y: number, w: number, h: number) {
+  constructor(video: string, x: number, y: number, w: number, h: number, extension = "jpeg") {
     this.video = video;
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+    this.extension = extension;
   }
   video = "";
   x = 0;
@@ -124,6 +129,7 @@ class Video {
   opacity = 1;
   framerate = 60;
   currentTime = 0;
+  extension = "jpeg"
 }
 
 /** Class representing a solid block of colour */
@@ -424,6 +430,38 @@ const noEase = (t) => {
   return t;
 };
 
+/**
+ * Move an object around over time. Calling this with yield* will pause the scene until the movement is complete.
+ * @param object The object to move
+ * @param duration The duration of the movement in frames
+ * @param properties The properties to move around
+ * @param framesPerMovement The frames until randomising the movement
+ * @param nextGen The generator to call after the move is complete
+ */
+ function* randomMove (object: {[key: string]: any}, duration: number, properties: {[key: string]: [number, number, number]}, framesPerMovement: number, nextGen = null) {
+  let frame = 0;
+  let randomiseFrames = 0;
+  while (frame < duration) {
+    frame++;
+    randomiseFrames++;
+    if (randomiseFrames >= framesPerMovement) {
+      randomiseFrames = 0;
+      for (const key in properties) {
+        const [_, min, max] = properties[key];
+        object[key] = Math.random() * (max - min) + min;
+      }
+    }
+    yield;
+  }
+
+  // set values to first number
+  for (const key in properties) {
+    object[key] = properties[key][0];
+  }
+  if (nextGen && nextGen.next)
+    yield* nextGen;
+}
+
 const EASINGS = {
   easeIn,
   easeOut,
@@ -560,7 +598,7 @@ const defaultRenderer = (canvas: any, scenes: Generator<any,void,any>[], vidLeng
               let frame = new Image();
               let i = Math.floor(obj.currentTime / 60 * obj.framerate) + 1;
               let num = `0000${i}`.slice(-5);
-              frame.src = __dirname + "/" + obj.video + "/frame" + num + ".jpeg";
+              frame.src = __dirname + "/" + obj.video + "/frame" + num + "." + obj.extension;
               while (frame.width === 0) {}
               canvas.getContext('2d').drawImage(frame, obj.x, obj.y, obj.w, obj.h);
   
@@ -636,59 +674,166 @@ for (const file of files) {
   fs.unlinkSync(__dirname + "/out/" + file);
 }
 
-const project = require(`./projects/${PROJECT_TO_BUILD}/index`);
-
-// run project main method
-let props = project.main(canvas);
-let length = props.i;
-let audioPath = props.audioPath || null;
-let type = props.type || "mp4"; // mp4 or gif
-console.log(type);
-
-console.log(audioPath);
-
-(async () => {
-  await ffmpeg.load();
-  if (audioPath !== null) 
-    ffmpeg.FS('writeFile', 'audio.ogg', await fetchFile(__dirname + "/" + audioPath));
-  for (let i = 0; i < length; i += 1) {
-    const num = `0000${i}`.slice(-5);
-    if ((type === "mp4" || i % 2 === 0) && fs.existsSync(__dirname + `/out/frame${i}.jpeg`))
-      ffmpeg.FS('writeFile', `tmp.${num}.jpeg`, await fetchFile(__dirname + `/out/frame${i}.jpeg`));
-  }
-
-  if (type === "mp4")
-    if (audioPath !== null)
-      if (props.shorter)
-        await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-ss' , `${Math.floor(100*START_FRAME/60)/100}`, '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-shortest', 'out.mp4');
+const render = (asdf = null) => {
+  const project = require(`./projects/${PROJECT_TO_BUILD}/index`);
+  
+  // run project main method
+  let props = project.main(canvas);
+  let length = props.i;
+  let audioPath = asdf || props.audioPath || null;
+  let type = asdf || props.type || "mp4"; // mp4 or gif
+  console.log(type);
+  
+  console.log(audioPath);
+  
+  if (type === "none") {} else
+  {
+    (async () => {
+      await ffmpeg.load();
+      if (type === "none") {} else
+      if (audioPath !== null) 
+        ffmpeg.FS('writeFile', 'audio.ogg', await fetchFile(__dirname + "/" + audioPath));
+      for (let i = 0; i < length; i += 1) {
+        const num = `0000${i}`.slice(-5);
+        if ((type === "mp4" || i % 2 === 0) && fs.existsSync(__dirname + `/out/frame${i}.jpeg`))
+          ffmpeg.FS('writeFile', `tmp.${num}.jpeg`, await fetchFile(__dirname + `/out/frame${i}.jpeg`));
+      }
+    
+      if (type === "none") {} else
+      if (type === "mp4")
+        if (audioPath !== null)
+          if (props.shorter)
+            await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-ss' , `${Math.floor(100*START_FRAME/60)/100}`, '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-shortest', 'out.mp4');
+          else
+            await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-ss' , `${Math.floor(100*START_FRAME/60)/100}`, '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
+        else
+          await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
+      else if (type === "gif")
+        await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '-1', 'out.gif');
+      else if (type === "gifloop")
+        await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '0', 'out.gif');
+    
+      if (type === "none") {} else
+      if (audioPath !== null)
+        await ffmpeg.FS('unlink', 'audio.ogg');
+    
+      if (type === "none") {} else
+      for (let i = START_FRAME; i < (END_FRAME === -1 ? length : END_FRAME); i += 1) {
+        const num = `0000${i}`.slice(-5);
+        await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
+      }
+      if (type === "none") {} else
+      if (type === "mp4")
+        await fs.promises.writeFile('out.mp4', ffmpeg.FS('readFile', 'out.mp4'));
       else
-        await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-ss' , `${Math.floor(100*START_FRAME/60)/100}`, '-i', 'audio.ogg', '-c:a', 'mp3', '-map', '0:v', '-map', '1:a', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
-    else
-      await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', 'out.mp4');
-  else if (type === "gif")
-    await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '-1', 'out.gif');
-  else if (type === "gifloop")
-    await ffmpeg.run('-framerate', '60', '-pattern_type', 'glob', '-i', '*.jpeg', '-vf', 'scale=360:-1', '-loop', '0', 'out.gif');
-
-  if (audioPath !== null)
-    await ffmpeg.FS('unlink', 'audio.ogg');
-
-  for (let i = START_FRAME; i < (END_FRAME === -1 ? length : END_FRAME); i += 1) {
-    const num = `0000${i}`.slice(-5);
-    await ffmpeg.FS('unlink', `tmp.${num}.jpeg`);
+        await fs.promises.writeFile('out.gif', ffmpeg.FS('readFile', 'out.gif'));
+    
+      // delete frames
+      if (type === "none") {} else
+      for (let i = 0; i < length; i += 1) {
+        if (fs.existsSync(__dirname + `/out/frame${i}.jpeg`))
+          await fs.promises.unlink(__dirname + `/out/frame${i}.jpeg`);
+      }
+      console.log("Done!");
+    })();
   }
-  if (type === "mp4")
-    await fs.promises.writeFile('out.mp4', ffmpeg.FS('readFile', 'out.mp4'));
-  else
-    await fs.promises.writeFile('out.gif', ffmpeg.FS('readFile', 'out.gif'));
+}
 
-  // delete frames
-  for (let i = 0; i < length; i += 1) {
-    if (fs.existsSync(__dirname + `/out/frame${i}.jpeg`))
-      await fs.promises.unlink(__dirname + `/out/frame${i}.jpeg`);
+const render_frame = async (frame) => {
+  // clear out out folder
+  let files = fs.readdirSync(__dirname + "/out");
+  for (const file of files) {
+    fs.unlinkSync(__dirname + "/out/" + file);
   }
-  console.log("Done!");
-  process.exit(0);
-})();
 
-export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, Video, tween, pinTo, easeInOut, easeIn, easeOut, noEase, EASINGS, waitFrames, waitUntilTime, getTextWidth }
+  let old_START_FRAME = START_FRAME;
+  let old_END_FRAME = END_FRAME;
+
+  START_FRAME = frame;
+  END_FRAME = frame;
+
+  render("none");
+
+  START_FRAME = old_START_FRAME;
+  END_FRAME = old_END_FRAME;
+
+  // move file to out.png
+
+  files = fs.readdirSync(__dirname + "/out");
+  for (const file of files) {
+    // copy to out.png
+    fs.renameSync(__dirname + '/out/' + file, __dirname + '/out.png')
+  }
+}
+
+console.log(PROJECT_TO_BUILD);
+
+if (PROJECT_TO_BUILD === "ui") {
+  let hostname = 'localhost';
+  let port = 44242
+  // create web server
+  const server = http.createServer((req, res) => {
+    const parsedUrl = url.parse(req.url, true);
+
+    const pathname = parsedUrl.pathname;
+    console.log(pathname);
+
+    if (pathname.indexOf("tscframe") !== -1 && pathname.indexOf("png") !== -1) {
+      let hasdone = false;
+      
+      tsc.compile({
+        'project': '.'
+      })
+      .then(()=>{console.log("deez"); hasdone = true})
+      while (!hasdone) {}
+      PROJECT_TO_BUILD = pathname.split('frame')[1].split('.png')[0].split(":")[1]
+      render_frame(pathname.split('frame')[1].split('.png')[0].split(":")[2]);
+      fs.readFile('out.png', (err, data) => {
+        if (err) {
+          res.statusCode = 500;
+          res.end(`Error getting the file: ${err}.`);
+        } else {
+          res.statusCode = 200;
+          res.setHeader('Content-type', 'image/png');
+          res.end(data);
+        }
+      })
+    } else if (pathname.indexOf("frame") !== -1 && pathname.indexOf("png") !== -1) {
+      PROJECT_TO_BUILD = pathname.split('frame')[1].split('.png')[0].split(":")[1]
+      render_frame(pathname.split('frame')[1].split('.png')[0].split(":")[2]);
+      fs.readFile('out.png', (err, data) => {
+        if (err) {
+          res.statusCode = 500;
+          res.end(`Error getting the file: ${err}.`);
+        } else {
+          res.statusCode = 200;
+          res.setHeader('Content-type', 'image/png');
+          res.end(data);
+        }
+      })
+    } else if (pathname.indexOf('/render') !== -1) {
+      PROJECT_TO_BUILD = pathname.split(":")[1]
+      render();
+    } else {
+      fs.readFile('ui.html', (err, data) => {
+        if (err) {
+          res.statusCode = 500;
+          res.end(`Error getting the file: ${err}.`);
+        } else {
+          res.statusCode = 200;
+          res.setHeader('Content-type', 'text/html');
+          res.end(data);
+        }
+      });
+    }
+  });
+  
+  server.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}/`);
+  });
+  
+} else {
+  render();
+}
+
+export { CONSTS, defaultRenderer, Text, ObjectImage as Image, Box, Video, tween, pinTo, easeInOut, easeIn, easeOut, noEase, EASINGS, waitFrames, waitUntilTime, getTextWidth, randomMove }
